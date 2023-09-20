@@ -1,0 +1,108 @@
+name: 🏴‍☠️ Probe Reverse DNS (SubDomains)
+# Alt: 
+
+on:
+  workflow_dispatch: # Whenever manually run from actions-tab
+  schedule:
+    - cron: "30 20 * * *"  #( 08:30 PM UTC --> 02:15 AM Midnight )
+#------------------------------------------------------------------------------------#  
+env:
+  # DO NOT MODIFY ANYTHING ELSE
+  INVENTORY_REPO_USER: "${{ secrets.INVENTORY_REPO_USER }}"
+  INVENTORY_REPO_TOKEN: "${{ secrets.INVENTORY_REPO_TOKEN }}"
+#------------------------------------------------------------------------------------#
+jobs:
+  Crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 69696969696969  
+    permissions:
+      contents: write
+      
+    steps:        
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: main  
+
+      - name: Install Coreutils
+        run: |
+          # Presets
+          set -x ; set +e
+          #--------------#
+          sudo apt update -y
+          sudo apt install coreutils curl dos2unix fdupes jq moreutils wget -y
+          pip install ansi2txt
+          # Do again, sometimes fails
+          sudo apt install coreutils curl fdupes dos2unix jq moreutils wget -y
+          pip install ansi2txt
+          # For TG BOT Notifs
+          pip install apprise 
+          pip install apprise 2>/dev/null
+          # For neofetch
+          pip install archey4
+          pip install archey4 2>/dev/null
+        continue-on-error: true
+      
+      # Chrome is preinstalled
+      # - name: Install Chrome
+      #   run: |
+      #     # Presets
+      #     set -x ; set +e
+      #     #--------------#
+      #     wget "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb" -O "/tmp/chrome.deb"
+      #     sudo apt install "/tmp/chrome.deb" -y
+      #     sudo apt update -y && sudo apt upgrade -y
+      #   continue-on-error: false
+
+      - name: Install eget
+        run: |
+          # Presets
+          set -x ; set +e
+          #--------------#
+          # eget for bins
+          sudo wget "https://raw.githubusercontent.com/Azathothas/Toolpacks/main/x86_64/eget" -O "/usr/local/bin/eget"
+          sudo chmod +xwr "/usr/local/bin/eget"
+        continue-on-error: false
+
+      - name: Install Deps
+        run: |
+          # Presets
+          set -x ; set +e
+          #--------------#
+          #anew
+          sudo eget "https://raw.githubusercontent.com/Azathothas/Toolpacks/main/x86_64/anew" --to "/usr/local/bin/anew" ; anew -h
+          #gau
+          sudo eget "https://raw.githubusercontent.com/Azathothas/Toolpacks/main/x86_64/gau" --to "/usr/local/bin/gau" ; gau -h
+          #getJS
+          sudo eget "https://raw.githubusercontent.com/Azathothas/Toolpacks/main/x86_64/getJS" --to "/usr/local/bin/getJS" ; getJS -h
+          #hakrevdns
+          sudo eget "https://raw.githubusercontent.com/Azathothas/Toolpacks/main/x86_64/hakrevdns" --to "/usr/local/bin/hakrevdns" ; hakrevdns -h
+          #httpx
+          sudo eget "https://raw.githubusercontent.com/Azathothas/Toolpacks/main/x86_64/httpx" --to "/usr/local/bin/httpx" ; httpx -h
+          #inscope
+          sudo eget "https://raw.githubusercontent.com/Azathothas/Toolpacks/main/x86_64/inscope" --to "/usr/local/bin/inscope" ; inscope -h
+          #mapcidr
+          sudo eget "https://raw.githubusercontent.com/Azathothas/Toolpacks/main/x86_64/mapcidr" --to "/usr/local/bin/mapcidr" ; mapcidr -h
+          #revit
+          sudo eget "https://raw.githubusercontent.com/Azathothas/Toolpacks/main/x86_64/revit" --to "/usr/local/bin/revit" ; revit -h   
+          #scopeview
+          sudo eget "https://raw.githubusercontent.com/Azathothas/Toolpacks/main/x86_64/scopeview" --to "/usr/local/bin/scopeview" ; scopeview -h
+          #yq
+          sudo eget "https://raw.githubusercontent.com/Azathothas/Toolpacks/main/x86_64/yq" --to "/usr/local/bin/yq" ; sudo chmod +xwr "/usr/local/bin/yq" ; yq -h
+        continue-on-error: true
+     
+      - name: Download & Run 
+        run: |
+          # Presets
+          set -x ; set +e
+          #--------------#
+          # Download
+          curl -qfsSL "https://$INVENTORY_REPO_USER:$INVENTORY_REPO_TOKEN@raw.githubusercontent.com/Azathothas/Inventory/main/.github/scripts/get_misc_subs_revdns.sh" -o "./get_misc_subs_revdns.sh"
+          # Dos2unix
+          dos2unix "./get_misc_subs_revdns.sh"
+          # chmod +xwr
+          sudo chmod +xwr "./get_misc_subs_revdns.sh"
+          # Run
+          # Always run with STD_OUT + STD_IN >/dev/null
+          bash "./get_misc_subs_revdns.sh" >/dev/null 2>&1
+        continue-on-error: true
