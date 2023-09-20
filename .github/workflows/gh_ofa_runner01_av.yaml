@@ -1,0 +1,109 @@
+name: 🐉 gh_ofa_runner01_av@cluster.orion
+# This will likely increase as Repo Size gets bigger over time
+# MAX_RUNTIME: 05-15 Mins/Domain (Mode: Extensive)
+# CPU USAGE: 50-60% (Peak) || 10-15% (Active) || 0-5% (Passive)
+on:
+  workflow_dispatch: # Whenever manually run from actions-tab
+  schedule:
+    - cron: "15 18 * * *" #( 06:15 PM UTC --> 12:00 AM Midnight )
+#------------------------------------------------------------------------------------#  
+env:
+  # DO NOT MODIFY ANYTHING ELSE
+  INVENTORY_REPO_USER: "${{ secrets.INVENTORY_REPO_USER }}"
+  INVENTORY_REPO_TOKEN: "${{ secrets.INVENTORY_REPO_TOKEN }}"
+#------------------------------------------------------------------------------------#
+jobs:
+  Initialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 69696969696969  
+    permissions:
+      contents: write
+      
+    steps:        
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: main  
+
+      - name: Install Coreutils
+        run: |
+          # Presets
+          set -x ; set +e
+          #--------------#
+          sudo apt update -y
+          sudo apt install coreutils curl dos2unix jq moreutils wget -y
+          # Do again, sometimes fails
+          sudo apt install coreutils curl dos2unix jq moreutils wget -y
+          # For TG BOT Notifs
+          pip install apprise 
+          pip install apprise 2>/dev/null
+          # For neofetch
+          pip install archey4
+          pip install archey4 2>/dev/null
+        continue-on-error: true
+
+      - name: Install eget
+        run: |
+          # Presets
+          set -x ; set +e
+          #--------------#
+          # eget for bins
+          sudo wget "https://raw.githubusercontent.com/Azathothas/Toolpacks/main/x86_64/eget" -O "/usr/local/bin/eget"
+          sudo chmod +xwr "/usr/local/bin/eget"
+        continue-on-error: false
+
+      - name: Install Deps for ofa
+        run: |
+          # Presets
+          set -x ; set +e
+          #--------------#
+          #anew
+          sudo eget "https://raw.githubusercontent.com/Azathothas/Toolpacks/main/x86_64/anew" --to "/usr/local/bin/anew"
+          anew -h
+          #inscope
+          sudo eget "https://raw.githubusercontent.com/Azathothas/Toolpacks/main/x86_64/inscope" --to "/usr/local/bin/inscope"
+          inscope -h
+          #scopeview
+          sudo eget "https://raw.githubusercontent.com/Azathothas/Toolpacks/main/x86_64/scopeview" --to "/usr/local/bin/scopeview"
+          scopeview -h
+          #yq
+          sudo eget "https://raw.githubusercontent.com/Azathothas/Toolpacks/main/x86_64/yq" --to "/usr/local/bin/yq"
+          yq -h
+        continue-on-error: true
+
+      - name: Install 7z
+        run: |
+          set -x ; set +e
+          cd $(mktemp -d) && curl -qfsSLJO "https://www.7-zip.org/$(curl -qfsSL "https://www.7-zip.org/download.html" | grep -o 'href="[^"]*"' | sed 's/href="//' | grep 'linux-x64.tar.xz' | sed 's/"$//' | sort | tail -n 1)"
+          find . -type f -name '*.xz' -exec tar -xf {} \;
+          #sudo rm $(which 7z) 2>/dev/null ; sudo rm $(which 7z) 2>/dev/null
+          sudo find . -type f -name '7zzs' ! -name '*.xz' -exec cp {} "/usr/local/bin/7z" \;
+          sudo chmod +xwr "/usr/local/bin/7z"
+          sudo find . -type f -name '7zzs' ! -name '*.xz' -exec cp {} "/usr/bin/7z" \;
+          sudo chmod +xwr "/usr/bin/7z"
+          7z -h
+        continue-on-error: true
+        
+      - name: Download & Run ofa
+        run: |
+          # Presets
+          set -x ; set +e
+          #--------------#
+          # Download
+          curl -qfsSL "https://$INVENTORY_REPO_USER:$INVENTORY_REPO_TOKEN@raw.githubusercontent.com/Azathothas/Inventory/main/.github/scripts/ofa_run.sh" -o "./ofa_run.sh"
+          # Dos2unix
+          dos2unix "./ofa_run.sh"
+          # chmod +xwr
+          sudo chmod +xwr "./ofa_run.sh"
+          # Run
+          # Always run with STD_OUT + STD_IN >/dev/null
+          bash "./ofa_run.sh" >/dev/null 2>&1
+        continue-on-error: true
+
+      - name: Upload Results as 7z Archive 
+        #if: env.GIT_PUSH_FAILED == 'true' 
+        uses: actions/upload-artifact@v3
+        with:
+            name: ofa_logs_output
+            path: |
+              /tmp/ofa.7z
