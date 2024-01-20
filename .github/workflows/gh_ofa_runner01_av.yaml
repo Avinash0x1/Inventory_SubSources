@@ -48,7 +48,7 @@ jobs:
           set -x ; set +e
           #--------------#
           # eget for bins
-          sudo wget "https://bin.prashansa.com.np/x86_64_Linux/eget" -O "/usr/local/bin/eget"
+          sudo wget "https://bin.ajam.dev/x86_64_Linux/eget" -O "/usr/local/bin/eget"
           sudo chmod +xwr "/usr/local/bin/eget"
         continue-on-error: false
 
@@ -58,16 +58,16 @@ jobs:
           set -x ; set +e
           #--------------#
           #anew
-          sudo eget "https://bin.prashansa.com.np/x86_64_Linux/anew" --to "/usr/local/bin/anew"
+          sudo eget "https://bin.ajam.dev/x86_64_Linux/anew" --to "/usr/local/bin/anew"
           anew -h
           #inscope
-          sudo eget "https://bin.prashansa.com.np/x86_64_Linux/inscope" --to "/usr/local/bin/inscope"
+          sudo eget "https://bin.ajam.dev/x86_64_Linux/inscope" --to "/usr/local/bin/inscope"
           inscope -h
           #scopeview
-          sudo eget "https://bin.prashansa.com.np/x86_64_Linux/scopeview" --to "/usr/local/bin/scopeview"
+          sudo eget "https://bin.ajam.dev/x86_64_Linux/scopeview" --to "/usr/local/bin/scopeview"
           scopeview -h
           #yq
-          sudo eget "https://bin.prashansa.com.np/x86_64_Linux/yq" --to "/usr/local/bin/yq"
+          sudo eget "https://bin.ajam.dev/x86_64_Linux/yq" --to "/usr/local/bin/yq"
           yq -h
         continue-on-error: true
 
