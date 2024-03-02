@@ -14,7 +14,7 @@ env:
 jobs:
   Crawl:
     runs-on: ubuntu-latest
-    timeout-minutes: 69696969696969  
+    timeout-minutes: 300 
     permissions:
       contents: write
       
@@ -22,75 +22,89 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          path: main  
-
+          path: main
+          filter: "blob:none" #https://github.blog/2020-12-21-get-up-to-speed-with-partial-clone-and-shallow-clone/
+          
       - name: Install Coreutils
         run: |
           # Presets
           set -x ; set +e
           #--------------#
           sudo apt update -y
-          sudo apt install coreutils curl dos2unix fdupes jq moreutils wget -y
-          pip install ansi2txt
+          sudo apt install bc coreutils curl dos2unix fdupes jq moreutils wget -y
+          sudo apt-get install apt-transport-https apt-utils ca-certificates coreutils dos2unix gnupg2 jq moreutils p7zip-full rsync software-properties-common texinfo util-linux wget -y 2>/dev/null ; sudo apt-get update -y 2>/dev/null
           # Do again, sometimes fails
-          sudo apt install coreutils curl fdupes dos2unix jq moreutils wget -y
-          pip install ansi2txt
-          # For TG BOT Notifs
-          pip install apprise 
-          pip install apprise 2>/dev/null
-          # For neofetch
-          pip install archey4
-          pip install archey4 2>/dev/null
+          sudo apt install bc coreutils curl dos2unix fdupes jq moreutils wget -y
+          sudo apt-get install apt-transport-https apt-utils ca-certificates coreutils dos2unix gnupg2 jq moreutils p7zip-full rsync software-properties-common texinfo util-linux wget -y 2>/dev/null ; sudo apt-get update -y 2>/dev/null
         continue-on-error: true
-      
-      # Chrome is preinstalled
-      # - name: Install Chrome
-      #   run: |
-      #     # Presets
-      #     set -x ; set +e
-      #     #--------------#
-      #     wget "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb" -O "/tmp/chrome.deb"
-      #     sudo apt install "/tmp/chrome.deb" -y
-      #     sudo apt update -y && sudo apt upgrade -y
-      #   continue-on-error: false
 
-      - name: Install eget
+      - name: Set TZ to (Asia/Kathmandu)
+        run: |
+          # Presets
+          set +x ; set +e
+          #--------------#        
+          sudo apt-get update -y && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
+          sudo ln -fs "/usr/share/zoneinfo/Asia/Kathmandu" "/etc/localtime"
+          sudo dpkg-reconfigure --frontend noninteractive tzdata
+          sudo apt-get install apt-utils software-properties-common -y           
+          sudo apt-get update -y
+        continue-on-error: true
+
+      - name: Setup Python
         run: |
           # Presets
           set -x ; set +e
           #--------------#
-          # eget for bins
-          sudo wget "https://bin.ajam.dev/x86_64_Linux/eget" -O "/usr/local/bin/eget"
-          sudo chmod +xwr "/usr/local/bin/eget"
+          sudo apt-get install python3 -y
+          #Test
+          python --version 2>/dev/null ; python3 --version 2>/dev/null
+          #Install pip:
+          #python3 -m ensurepip --upgrade ; pip3 --version
+          #curl -qfsSL "https://bootstrap.pypa.io/get-pip.py" -o "$SYSTMP/get-pip.py" && python3 "$SYSTMP/get-pip.py"
+          sudo apt-get install libxslt-dev lm-sensors pciutils procps python3-distro python-dev-is-python3 python3-lxml python3-netifaces python3-pip python3-venv sysfsutils virt-what -y
+          pip install --break-system-packages --upgrade pip || pip install --upgrade pip
+          #Misc
+          pip install ansi2txt --break-system-packages --force-reinstall --upgrade
+          #pipx
+          pip install pipx --upgrade 2>/dev/null
+          pip install pipx --upgrade --break-system-packages 2>/dev/null
+          # DVC
+          pip install "git+https://github.com/iterative/dvc#egg=dvc[all]" --break-system-packages --force-reinstall --upgrade
+          # For TG BOT Notifs
+          pip install apprise --upgrade 2>/dev/null
+          pip install apprise --upgrade --break-system-packages 2>/dev/null
+          # For neofetch
+          pip install archey4 --upgrade 2>/dev/null
+          pip install archey4 --upgrade --break-system-packages 2>/dev/null
+        continue-on-error: true
+
+    ##JavaScript
+      - name: Setup NodeJS (bun || npm || pnpm || yarn)
+        run: |
+          # Presets
+          set -x ; set +e
+          #--------------#
+          #RUN
+          bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Linux/Debian/install_node_x86_64.sh")
+        continue-on-error: true
+
+      #Chrome is preinstalled on official gh runners
+      - name: Install Chrome & Chromium
+        run: |
+          # Presets
+          set -x ; set +e
+          #--------------#
+          #Run
+          bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Linux/Debian/install_chrome_x86_64.sh")
         continue-on-error: false
-
-      - name: Install Deps
+        
+      - name: Install Addons & Deps
         run: |
           # Presets
           set -x ; set +e
           #--------------#
-          #anew
-          sudo eget "https://bin.ajam.dev/x86_64_Linux/anew" --to "/usr/local/bin/anew"
-          #anew-rs
-          sudo eget "https://bin.ajam.dev/x86_64_Linux/anew-rs" --to "/usr/local/bin/anew-rs" ; anew-rs -h
-          #gau
-          sudo eget "https://bin.ajam.dev/x86_64_Linux/gau" --to "/usr/local/bin/gau" ; gau -h
-          #getJS
-          sudo eget "https://bin.ajam.dev/x86_64_Linux/getJS" --to "/usr/local/bin/getJS" ; getJS -h
-          #hakrevdns
-          sudo eget "https://bin.ajam.dev/x86_64_Linux/hakrevdns" --to "/usr/local/bin/hakrevdns" ; hakrevdns -h
-          #httpx
-          sudo eget "https://bin.ajam.dev/x86_64_Linux/httpx" --to "/usr/local/bin/httpx" ; httpx -h
-          #inscope
-          sudo eget "https://bin.ajam.dev/x86_64_Linux/inscope" --to "/usr/local/bin/inscope" ; inscope -h
-          #mapcidr
-          sudo eget "https://bin.ajam.dev/x86_64_Linux/mapcidr" --to "/usr/local/bin/mapcidr" ; mapcidr -h
-          #revit
-          sudo eget "https://bin.ajam.dev/x86_64_Linux/revit" --to "/usr/local/bin/revit" ; revit -h   
-          #scopeview
-          sudo eget "https://bin.ajam.dev/x86_64_Linux/scopeview" --to "/usr/local/bin/scopeview" ; scopeview -h
-          #yq
-          sudo eget "https://bin.ajam.dev/x86_64_Linux/yq" --to "/usr/local/bin/yq" ; sudo chmod +xwr "/usr/local/bin/yq" ; yq -h
+          #Run
+          bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Linux/Debian/install_bb_tools_x86_64.sh")
         continue-on-error: true
      
       - name: Download & Run 
