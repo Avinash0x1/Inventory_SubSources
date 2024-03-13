@@ -126,7 +126,7 @@ jobs:
 
       - name: Upload Results as 7z Archive 
         #if: env.GIT_PUSH_FAILED == 'true' 
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
             name: ofa_logs_output
             path: |
