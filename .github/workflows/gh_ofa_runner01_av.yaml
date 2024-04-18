@@ -74,6 +74,7 @@ jobs:
           # For TG BOT Notifs
           pip install apprise --upgrade 2>/dev/null
           pip install apprise --upgrade --break-system-packages 2>/dev/null
+          pip install "git+https://github.com/rahiel/telegram-send" --break-system-packages --force-reinstall --upgrade
           # For neofetch
           pip install archey4 --upgrade 2>/dev/null
           pip install archey4 --upgrade --break-system-packages 2>/dev/null
