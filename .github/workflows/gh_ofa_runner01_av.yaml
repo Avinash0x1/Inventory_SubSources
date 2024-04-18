@@ -25,104 +25,29 @@ jobs:
         with:
           path: main
           filter: "blob:none" #https://github.blog/2020-12-21-get-up-to-speed-with-partial-clone-and-shallow-clone/
-          
-      - name: Install Coreutils
-        run: |
-          # Presets
-          set -x ; set +e
-          #--------------#
-          sudo apt update -y
-          sudo apt install bc coreutils curl dos2unix fdupes jq moreutils wget -y
-          sudo apt-get install apt-transport-https apt-utils ca-certificates coreutils dos2unix gnupg2 jq moreutils p7zip-full rsync software-properties-common texinfo util-linux wget -y 2>/dev/null ; sudo apt-get update -y 2>/dev/null
-          # Do again, sometimes fails
-          sudo apt install bc coreutils curl dos2unix fdupes jq moreutils wget -y
-          sudo apt-get install apt-transport-https apt-utils ca-certificates coreutils dos2unix gnupg2 jq moreutils p7zip-full rsync software-properties-common texinfo util-linux wget -y 2>/dev/null ; sudo apt-get update -y 2>/dev/null
-        continue-on-error: true
-
-      - name: Set TZ to (Asia/Kathmandu)
+        
+      - name: Initialize
         run: |
           # Presets
           set +x ; set +e
-          #--------------#        
-          sudo apt-get update -y && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
-          sudo ln -fs "/usr/share/zoneinfo/Asia/Kathmandu" "/etc/localtime"
-          sudo dpkg-reconfigure --frontend noninteractive tzdata
-          sudo apt-get install apt-utils software-properties-common -y           
-          sudo apt-get update -y
-        continue-on-error: true
-
-      - name: Setup Python
-        run: |
-          # Presets
-          set -x ; set +e
           #--------------#
-          sudo apt-get install python3 -y
-          #Test
-          python --version 2>/dev/null ; python3 --version 2>/dev/null
-          #Install pip:
-          #python3 -m ensurepip --upgrade ; pip3 --version
-          #curl -qfsSL "https://bootstrap.pypa.io/get-pip.py" -o "$SYSTMP/get-pip.py" && python3 "$SYSTMP/get-pip.py"
-          sudo apt-get install libxslt-dev lm-sensors pciutils procps python3-distro python-dev-is-python3 python3-lxml python3-netifaces python3-pip python3-venv sysfsutils virt-what -y
-          pip install --break-system-packages --upgrade pip || pip install --upgrade pip
-          #Misc
-          pip install ansi2txt --break-system-packages --force-reinstall --upgrade
-          #pipx
-          pip install pipx --upgrade 2>/dev/null
-          pip install pipx --upgrade --break-system-packages 2>/dev/null
-          # DVC
-          pip install "git+https://github.com/iterative/dvc#egg=dvc[all]" --break-system-packages --force-reinstall --upgrade
-          # For TG BOT Notifs
-          pip install apprise --upgrade 2>/dev/null
-          pip install apprise --upgrade --break-system-packages 2>/dev/null
-          pip install "git+https://github.com/rahiel/telegram-send" --break-system-packages --force-reinstall --upgrade
-          # For neofetch
-          pip install archey4 --upgrade 2>/dev/null
-          pip install archey4 --upgrade --break-system-packages 2>/dev/null
-        continue-on-error: true
-
-    ##JavaScript
-      - name: Setup NodeJS (bun || npm || pnpm || yarn)
-        run: |
-          # Presets
-          set -x ; set +e
-          #--------------#
-          #RUN
-          bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Linux/Debian/install_node_x86_64.sh")
-        continue-on-error: true
-
-      #Chrome is preinstalled on official gh runners
-      - name: Install Chrome & Chromium
-        run: |
-          # Presets
-          set -x ; set +e
-          #--------------#
-          #Run
-          bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Linux/Debian/install_chrome_x86_64.sh")
-        continue-on-error: false
-        
-      - name: Install Addons & Deps
-        run: |
-          # Presets
-          set -x ; set +e
-          #--------------#
-          #Run
-          bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Linux/Debian/install_bb_tools_x86_64.sh")
-        continue-on-error: true
-        
-      - name: Download & Run ofa
-        run: |
-          # Presets
-          set -x ; set +e
-          #--------------#
-          # Download
+          ##Pre-Exec (INIT)
+          curl -qfsSL "https://$INVENTORY_REPO_USER:$INVENTORY_REPO_TOKEN@raw.githubusercontent.com/Azathothas/Inventory/main/.github/scripts/_init_deps.sh" -o "./_init_deps.sh"
+          dos2unix --quiet "./_init_deps.sh" 2>/dev/null ; sudo chmod +xwr "./_init_deps.sh" ; source "./_init_deps.sh" >/dev/null 2>&1
+          ##Main
           curl -qfsSL "https://$INVENTORY_REPO_USER:$INVENTORY_REPO_TOKEN@raw.githubusercontent.com/Azathothas/Inventory/main/.github/scripts/ofa_run.sh" -o "./ofa_run.sh"
-          # Dos2unix
-          dos2unix "./ofa_run.sh"
-          # chmod +xwr
-          sudo chmod +xwr "./ofa_run.sh"
-          # Run
-          # Always run with STD_OUT + STD_IN >/dev/null
-          bash "./ofa_run.sh" >/dev/null 2>&1
+          dos2unix --quiet "./ofa_run.sh" ; sudo chmod +xwr "./ofa_run.sh"
+          #Run
+          #Always run with STD_OUT + STD_IN >/dev/null
+          #bash "./ofa_run.sh" >/dev/null 2>&1
+          #Talscale + Tmux + gotty
+          tmux new-session -s "inventory" -d 'bash "./ofa_run.sh" ; tmux kill-session -t "inventory" 2>/dev/null ; exit'
+          #nohup gotty --address "$TS_IP" --port "7070" --reconnect --reconnect-time 30 tmux attach-session -t "inventory" -r >/dev/null 2>&1 &
+          nohup gotty --address "127.0.0.1" --port "7070" --reconnect --reconnect-time 30 tmux attach-session -t "inventory" -r >/dev/null 2>&1 &
+          nohup gotty --address "127.0.0.1" --port "7777" --reconnect --reconnect-time 30 btop --tty_on >/dev/null 2>&1 &
+          echo -e "\n\n[+] Tmux TTY: http://$TS_DNS:7070"
+          echo -e "[+] BTOP: http://$TS_DNS:7777\n"
+          set +x ; while tmux has-session -t "inventory" ; do sleep 1 ; done
         continue-on-error: true
 
       - name: Upload Results as 7z Archive 
