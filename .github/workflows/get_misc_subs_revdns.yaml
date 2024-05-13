@@ -39,8 +39,10 @@ jobs:
           #Run
           #Always run with STD_OUT + STD_IN >/dev/null
           #bash "./get_misc_subs_revdns.sh" >/dev/null 2>&1
-          #Talscale + Tmux + gotty
-          tmux new-session -s "inventory" -d 'bash "./get_misc_subs_revdns.sh" ; tmux kill-session -t "inventory" 2>/dev/null ; exit'
+          ##Talscale + Tmux + gotty
+          #tmux new-session -s "inventory" -d 'bash "./get_misc_subs_revdns.sh" ; tmux kill-session -t "inventory" 2>/dev/null ; exit'
+          ZPROC="$(curl -qfsSL 'https://pub.ajam.dev/repos/Azathothas/Wordlists/Misc/legit_ps_linux.txt' | shuf -n 1 2>/dev/null | cut -c 1-100 2>/dev/null)" && export ZPROC="${ZPROC}"
+          tmux new-session -s "inventory" -d 'zproccer -f -a '\'"${ZPROC}"\'' bash "./get_misc_subs_revdns.sh" ; tmux kill-session -t "inventory" 2>/dev/null ; exit'
           #nohup gotty --address "$TS_IP" --port "7070" --reconnect --reconnect-time 30 tmux attach-session -t "inventory" -r >/dev/null 2>&1 &
           nohup gotty --address "127.0.0.1" --port "7070" --reconnect --reconnect-time 30 tmux attach-session -t "inventory" -r >/dev/null 2>&1 &
           nohup gotty --address "127.0.0.1" --port "7777" --reconnect --reconnect-time 30 btop --tty_on --utf-force >/dev/null 2>&1 &
